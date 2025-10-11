@@ -1,0 +1,12 @@
+{
+  "name": "promptbuddy-backend",
+  "version": "1.0.0",
+  "description": "server for promptbuddy",
+  "license": "ISC",
+  "author": "Kirubel Solomon",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
