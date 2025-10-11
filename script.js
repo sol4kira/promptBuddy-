@@ -57,7 +57,7 @@ document.getElementById('generates').addEventListener('click', async () => {
 
   // Send to backend silently
   try {
-    const response = await fetch("http://localhost:3000/save-prompt", {
+    const response = await fetch("https://promptbuddy-46lk.onrender.com/save-prompt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt: p }),
@@ -81,4 +81,5 @@ document.getElementById("copy").addEventListener("click" ,async()=>{
     try{await navigator.clipboard.writeText(text); alert("Prompt have been Copied to clip board");}
     catch(e){
         const ta = document.createElement("textarea"); ta.value=text;document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); alert("Prompt have been copied");}
+
     });
