@@ -1,0 +1,84 @@
+:root{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+body{
+    margin-left:50px;
+    padding:24px;
+}
+.main{
+    max-width: 900px;
+    margin: 0;
+    padding:20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow:0 6px 24px rgba(23, 95, 53, 0.596);
+}
+
+h1{
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+p.welcome{
+    margin: 0 0 24px;
+    color: #313030;
+}
+
+label{
+    display: block;
+    margin: 12px 0 6px;
+    font-weight: 600;
+}
+
+textarea,select,input{
+    width:99%;
+    padding:10px;
+    border-radius: 5px;
+    border: 1px solid #f5f1f1ee;
+    font-size: 14px;
+}
+
+.row{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.action{
+    display:flex; 
+    gap: 10px;
+    margin-top: 12px;
+}
+
+button{
+    padding: 10px 15px;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.generate{
+    background: #0caa06a2;
+    color: #fff;
+}
+
+button:hover{
+    background: #2e2e2d;
+}
+
+button.quick{
+    background: #fff;
+    color: #0caa06a2;
+    border: 1px solid #ebe9e9;
+}
+
+pre{
+    white-space: pre-wrap;
+    padding:12px;
+    background:#5a5a5a;
+    color:#4ffc66;
+    border-radius: 5px;
+    overflow:auto;
+}
+
+.tip{
+    font-size: 12px;
+    font-weight: lighter;
+}
