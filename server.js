@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const server = http.createServer((req, res) => {
 
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Origin", "https://promptbuddystudy.netlify.app/");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
@@ -93,5 +93,6 @@ else if (req.method === "GET" && req.url === "/style.css") {
   }
 });
 
-server.listen(3000, () => console.log("✅ Server running on http://localhost:3000"));
+server.listen(3000, () => console.log("Server running..."));
+
 
