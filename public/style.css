@@ -51,13 +51,11 @@
 html {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
 }
 
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
   font-family: var(--font-family);
   background-color: var(--bg-page);
   color: var(--text-primary);
@@ -79,6 +77,18 @@ button {
   border: none;
   background: none;
   outline: none;
+}
+
+/* Accessible focus-visible styles */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.template-card:focus-visible,
+.bottom-tab:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 /* ==========================================================================
@@ -251,9 +261,15 @@ button {
 /* Form Grid */
 .form-grid {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   gap: 24px;
   margin-bottom: 24px;
+  min-width: 0;
+}
+
+.form-col-left,
+.form-col-right {
+  min-width: 0;
 }
 
 .field-group {
@@ -1059,13 +1075,13 @@ button {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
   background-color: var(--bg-card);
   border-top: 1px solid var(--border-light);
   z-index: 99;
   align-items: center;
   justify-content: space-around;
-  padding: 0 10px;
+  padding: 0 10px env(safe-area-inset-bottom, 0px);
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.4);
 }
 
@@ -1203,6 +1219,8 @@ button {
   position: fixed;
   bottom: 24px;
   right: 24px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
   background-color: #172d24;
   color: #6ee7b7;
   border: 1px solid var(--border-banner);
@@ -1248,14 +1266,15 @@ button {
     left: 0;
     right: 0;
     box-sizing: border-box;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
   }
 
   .page-wrapper {
     width: 100%;
     max-width: 100%;
-    padding: 16px 12px 84px;
+    padding: 16px 12px calc(84px + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
-    overflow-x: hidden;
   }
 
   /* On mobile: top bar spans 100% full width and shows only logo + name */
@@ -1334,7 +1353,7 @@ button {
   }
 
   .welcome-subtitle {
-    font-size: 13px;
+    font-size: 14px;
     word-break: break-word;
     line-height: 1.4;
   }
@@ -1343,7 +1362,7 @@ button {
     width: 100%;
     max-width: 100%;
     padding: 10px 12px;
-    font-size: 12.5px;
+    font-size: 14px;
     margin-bottom: 16px;
     min-width: 0;
     box-sizing: border-box;
@@ -1450,7 +1469,7 @@ button {
     min-width: 0;
     justify-content: center;
     padding: 9px 6px;
-    font-size: 12.5px;
+    font-size: 14px;
     box-sizing: border-box;
   }
 
@@ -1487,7 +1506,7 @@ button {
   }
 
   .specific-title {
-    font-size: 13.5px;
+    font-size: 14px;
     word-break: break-word;
   }
 
@@ -1530,7 +1549,7 @@ button {
   .output-pre {
     width: 100%;
     max-width: 100%;
-    font-size: 12.5px;
+    font-size: 14px;
     padding: 14px;
     max-height: 220px;
     box-sizing: border-box;
@@ -1539,6 +1558,7 @@ button {
   .tip-footer {
     width: 100%;
     max-width: 100%;
+    font-size: 14px;
     box-sizing: border-box;
   }
 
@@ -1577,6 +1597,14 @@ button {
     box-sizing: border-box;
   }
 
+  .recent-empty-state {
+    font-size: 14px;
+  }
+
+  .recent-name {
+    font-size: 14px;
+  }
+
   .recent-list {
     width: 100%;
     max-width: 100%;
@@ -1595,5 +1623,28 @@ button {
     min-width: 0;
     padding: 16px 14px;
     box-sizing: border-box;
+  }
+
+  .contact-desc {
+    font-size: 14px;
+  }
+
+  .contact-email-badge {
+    font-size: 14px;
+  }
+}
+
+/* ==========================================================================
+   Prefers Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

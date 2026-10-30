@@ -1,0 +1,46 @@
+[
+  {
+    "id": "code-review",
+    "category": "Coding",
+    "title": "Code Optimization & Review",
+    "description": "Review existing code for performance, security, and edge-cases.",
+    "goal": "Review this code for bugs, efficiency, and edge cases",
+    "context": "Language: JavaScript / TypeScript\nPriority: Performance and Clean Code patterns",
+    "style": "detail",
+    "audience": "advanced",
+    "length": "medium"
+  },
+  {
+    "id": "study-guide",
+    "category": "Study",
+    "title": "Active Recall & Exam Prep",
+    "description": "Generate interactive quiz questions and memory mnemonics.",
+    "goal": "Create an active-recall study guide with practice questions",
+    "context": "Subject / Topic: \nKey formulas or definitions to test: ",
+    "style": "example",
+    "audience": "beginner",
+    "length": "medium"
+  },
+  {
+    "id": "literature-summary",
+    "category": "Research",
+    "title": "Academic Paper Digest",
+    "description": "Summarize complex papers into findings, limitations, and key citations.",
+    "goal": "Summarize this research paper into key hypotheses, methodology, and conclusions",
+    "context": "Paper Title: \nMain arguments: \nLimitations noted: ",
+    "style": "concise",
+    "audience": "advanced",
+    "length": "medium"
+  },
+  {
+    "id": "step-by-step",
+    "category": "Tutorial",
+    "title": "Step-by-Step Problem Solver",
+    "description": "Break down difficult concepts into simple, sequential learning milestones.",
+    "goal": "Break down the following problem into progressive step-by-step milestones",
+    "context": "Problem description: \nCurrent blockers: ",
+    "style": "detail",
+    "audience": "beginner",
+    "length": "long"
+  }
+]

@@ -5,8 +5,12 @@
   "license": "ISC",
   "author": "Kirubel Solomon",
   "type": "module",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
   }
 }
