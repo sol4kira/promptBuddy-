@@ -1,76 +1,12 @@
-// script.js - PromptBuddy Application Logic (Dark Theme & Streamlined UI)
+import { HistoryStore } from "./js/historyStore.js";
+import { formatTimeAgo } from "./js/time.js";
+
+// Initialize the central history store
+const store = new HistoryStore();
 
 // Utility: Clean whitespace
 function cutWhiteSpace(text) {
   return (text || "").trim();
-}
-
-// Time formatting helper for relative timestamps
-function formatTimeAgo(timestamp) {
-  if (!timestamp || typeof timestamp !== "number") return "Recently";
-  const diffMs = Date.now() - timestamp;
-  if (diffMs < 0) return "Just now";
-  const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return "Just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
-  const date = new Date(timestamp);
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-}
-
-// Migration for existing localStorage entries
-function migrateRecentPrompts(prompts) {
-  let modified = false;
-  const now = Date.now();
-  const migrated = prompts.map((item, index) => {
-    const updated = { ...item };
-    if (!updated.id) {
-      updated.id = "pb_migrated_" + (now - (prompts.length - index) * 60000) + "_" + index;
-      modified = true;
-    }
-    if (!updated.createdAt || typeof updated.createdAt !== "number") {
-      updated.createdAt = now - (prompts.length - index) * 60000;
-      modified = true;
-    }
-    if (updated.audience === "intermid") {
-      updated.audience = "intermediate";
-      modified = true;
-    }
-    return updated;
-  });
-
-  if (modified) {
-    saveRecentPrompts(migrated);
-  }
-  return migrated;
-}
-
-// LocalStorage helpers
-function getRecentPrompts() {
-  try {
-    const saved = localStorage.getItem("promptbuddy_recents");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        return migrateRecentPrompts(parsed);
-      }
-    }
-  } catch (e) {
-    console.warn("Could not read recent prompts from storage:", e);
-  }
-  return [];
-}
-
-function saveRecentPrompts(prompts) {
-  try {
-    localStorage.setItem("promptbuddy_recents", JSON.stringify(prompts));
-  } catch (e) {
-    console.warn("Could not save recent prompts to storage:", e);
-  }
 }
 
 // Toast notification helper
@@ -94,7 +30,7 @@ function updateCharCounter() {
   counter.textContent = `${count}/1000`;
 }
 
-// Quick Preset Handlers (renamed from applyPresnt to applyPreset)
+// Quick Preset Handlers
 function applyPreset(name) {
   const goalInput = document.getElementById("goal");
   const contextInput = document.getElementById("context");
@@ -228,7 +164,7 @@ function selectTemplate(templateId) {
   if (goalInput) goalInput.focus();
 }
 
-// Build Prompt String
+// Build Prompt String (preserved exactly)
 function buildPrompt() {
   const goalInput = document.getElementById("goal");
   const contextInput = document.getElementById("context");
@@ -274,138 +210,21 @@ function buildPrompt() {
   return prompt;
 }
 
-// Remove a prompt from recent prompts by ID (not array index)
+// Remove a prompt from recent prompts by ID
 function removeRecentPrompt(id) {
-  const recents = getRecentPrompts();
-  const filtered = recents.filter((item) => item.id !== id);
-  if (filtered.length !== recents.length) {
-    saveRecentPrompts(filtered);
+  const removed = store.remove(id);
+  if (removed) {
     renderRecentPrompts();
-
-    // Re-render saved modal list if it's currently open
-    const savedModal = document.getElementById("savedPromptsModal");
-    if (savedModal && savedModal.classList.contains("open")) {
-      renderSavedModalList();
-    }
-
     showToast("🗑️ Prompt removed from recents");
   }
 }
 
-// Render Saved Prompts Modal List (Declared at module scope to fix Scope Bug)
-function renderSavedModalList() {
-  const savedModalList = document.getElementById("savedModalList");
-  if (!savedModalList) return;
-
-  const recents = getRecentPrompts();
-  savedModalList.innerHTML = "";
-
-  if (recents.length === 0) {
-    const emptyP = document.createElement("p");
-    emptyP.style.cssText = "color:var(--text-muted); padding:16px; text-align:center;";
-    emptyP.textContent = "No saved prompts yet. Generate prompts to see them here!";
-    savedModalList.appendChild(emptyP);
-    return;
-  }
-
-  recents.forEach((item) => {
-    const row = document.createElement("div");
-    row.className = "recent-item";
-
-    // Doc icon
-    const docSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    docSvg.setAttribute("class", "doc-icon");
-    docSvg.setAttribute("viewBox", "0 0 24 24");
-    docSvg.setAttribute("width", "16");
-    docSvg.setAttribute("height", "16");
-    docSvg.setAttribute("fill", "none");
-    docSvg.setAttribute("stroke", "currentColor");
-    docSvg.setAttribute("stroke-width", "2");
-    docSvg.innerHTML = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>`;
-
-    // Info container with safe textContent and title attribute assignment
-    const info = document.createElement("div");
-    info.className = "recent-info";
-    info.title = `Click to load: ${item.goal}`;
-
-    const name = document.createElement("div");
-    name.className = "recent-name";
-    name.textContent = item.goal;
-
-    const time = document.createElement("div");
-    time.className = "recent-time";
-    time.textContent = `${formatTimeAgo(item.createdAt)} • Tone: ${item.style || "concise"}`;
-
-    info.appendChild(name);
-    info.appendChild(time);
-
-    // Actions container
-    const actions = document.createElement("div");
-    actions.className = "recent-actions";
-    actions.style.cssText = "opacity:1; pointer-events:auto; transform:none;";
-
-    // Load button
-    const loadBtn = document.createElement("button");
-    loadBtn.type = "button";
-    loadBtn.className = "recent-btn recent-load-btn";
-    loadBtn.title = "Load prompt";
-    loadBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      <span>Load</span>
-    `;
-
-    // Remove button
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.className = "recent-btn recent-remove-btn";
-    removeBtn.title = "Remove prompt";
-    removeBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="3 6 5 6 21 6"/>
-        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-      </svg>
-      <span>Remove</span>
-    `;
-
-    actions.appendChild(loadBtn);
-    actions.appendChild(removeBtn);
-
-    row.appendChild(docSvg);
-    row.appendChild(info);
-    row.appendChild(actions);
-
-    info.addEventListener("click", () => {
-      loadSamplePrompt(item.goal, item.style, item.audience, item.length, item.context);
-      const savedModal = document.getElementById("savedPromptsModal");
-      if (savedModal) closeModal(savedModal);
-    });
-
-    loadBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      loadSamplePrompt(item.goal, item.style, item.audience, item.length, item.context);
-      const savedModal = document.getElementById("savedPromptsModal");
-      if (savedModal) closeModal(savedModal);
-    });
-
-    removeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      removeRecentPrompt(item.id);
-    });
-
-    savedModalList.appendChild(row);
-  });
-}
-
-// Render Recent Prompts list in sidebar with safe DOM creation
+// Render Recent Prompts list in sidebar using the LRU cache (store.recent(5))
 function renderRecentPrompts() {
   const listContainer = document.getElementById("recentPromptsList");
   if (!listContainer) return;
 
-  const recents = getRecentPrompts();
+  const recents = store.recent(5);
   listContainer.innerHTML = "";
 
   if (recents.length === 0) {
@@ -416,7 +235,7 @@ function renderRecentPrompts() {
     return;
   }
 
-  recents.slice(0, 5).forEach((item) => {
+  recents.forEach((item) => {
     const el = document.createElement("div");
     el.className = "recent-item";
     el.setAttribute("role", "listitem");
@@ -443,7 +262,7 @@ function renderRecentPrompts() {
 
     const time = document.createElement("div");
     time.className = "recent-time";
-    time.textContent = formatTimeAgo(item.createdAt);
+    time.textContent = formatTimeAgo(item.lastUsedAt || item.createdAt);
 
     info.appendChild(name);
     info.appendChild(time);
@@ -577,6 +396,24 @@ function closeModal(modal) {
   }
 }
 
+// Handle "Use again" URL hash from history.html
+function handleUseAgainHash() {
+  const hash = window.location.hash;
+  if (hash && hash.startsWith("#use-")) {
+    const id = hash.slice(5);
+    const entry = store.idMap.get(id);
+    if (entry) {
+      loadSamplePrompt(entry.goal, entry.style, entry.audience, entry.length, entry.context);
+      // Re-using a prompt counts as a use: moves to front of recents
+      store.add({ ...entry });
+      renderRecentPrompts();
+      showToast("✓ Loaded prompt from history!");
+      // Clean up hash without triggering navigation reload
+      history.replaceState(null, "", window.location.pathname);
+    }
+  }
+}
+
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
   const goalInput = document.getElementById("goal");
@@ -585,7 +422,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const copyBtnText = document.getElementById("copyBtnText");
   const outputElem = document.getElementById("output");
 
-  // State variable tracking whether a prompt was generated (replaces placeholder string check)
   let hasGeneratedPrompt = false;
 
   // Character counter listener
@@ -594,7 +430,29 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCharCounter();
   }
 
-  // Generate Prompt click handler
+  // Preset buttons (replaces inline onclick attributes)
+  document.querySelectorAll(".preset-btn[data-preset]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyPreset(btn.getAttribute("data-preset"));
+    });
+  });
+
+  // Mobile Bottom Bar Tabs click handlers (replaces inline onclick)
+  const mobileHomeTab = document.getElementById("mobileHomeTab");
+  if (mobileHomeTab) {
+    mobileHomeTab.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  const mobileGenerateTab = document.getElementById("mobileGenerateTab");
+  if (mobileGenerateTab) {
+    mobileGenerateTab.addEventListener("click", () => {
+      focusGenerator();
+    });
+  }
+
+  // Generate Prompt click handler with store.add()
   if (generateBtn) {
     generateBtn.addEventListener("click", () => {
       const p = buildPrompt();
@@ -610,38 +468,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const lengthVal = document.getElementById("length")?.value || "short";
       const contextVal = document.getElementById("context")?.value || "";
 
-      const recents = getRecentPrompts();
+      // Add to HistoryStore (handles deduplication, LRU update, Trie indexing, and storage)
+      store.add({
+        goal: goalVal,
+        style: styleVal,
+        audience: audienceVal,
+        length: lengthVal,
+        context: contextVal,
+      });
 
-      // Duplicate check: if identical prompt exists, move it to the front
-      const existingIndex = recents.findIndex(
-        (item) =>
-          item.goal === goalVal &&
-          item.style === styleVal &&
-          item.audience === audienceVal &&
-          item.length === lengthVal &&
-          (item.context || "") === contextVal
-      );
-
-      let entryToSave;
-      if (existingIndex !== -1) {
-        entryToSave = recents.splice(existingIndex, 1)[0];
-        entryToSave.createdAt = Date.now();
-      } else {
-        entryToSave = {
-          id: "pb_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8),
-          createdAt: Date.now(),
-          goal: goalVal,
-          style: styleVal,
-          audience: audienceVal,
-          length: lengthVal,
-          context: contextVal
-        };
-      }
-
-      recents.unshift(entryToSave);
-      saveRecentPrompts(recents.slice(0, 10));
       renderRecentPrompts();
-
       showToast("✨ Prompt generated successfully!");
 
       if (window.innerWidth < 768 && outputElem) {
@@ -669,7 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           await navigator.clipboard.writeText(text);
           copied = true;
-        } catch (e) {
+        } catch {
           copied = false;
         }
       }
@@ -686,7 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ta.select();
           copied = document.execCommand("copy");
           ta.remove();
-        } catch (e) {
+        } catch {
           copied = false;
         }
       }
@@ -698,7 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
         }, 2200);
       } else {
-        showToast("❌ Could not copy prompt to clipboard. Please copy manually.");
+        showToast("⚠️ Could not copy prompt to clipboard. Please copy manually.");
       }
     });
   }
@@ -723,43 +559,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Saved Prompts Modal Handlers
-  const navSavedLink = document.getElementById("navSavedLink");
-  const mobileSavedTab = document.getElementById("mobileSavedTab");
+  // Sidebar "View All" button -> opens history page
   const viewAllRecentBtn = document.getElementById("viewAllRecentBtn");
-  const savedPromptsModal = document.getElementById("savedPromptsModal");
-  const closeSavedModal = document.getElementById("closeSavedModal");
-
-  const openSavedModalFn = (trigger) => {
-    if (!savedPromptsModal) return;
-    renderSavedModalList();
-    openModal(savedPromptsModal, trigger);
-    updateNavActiveState("#saved");
-  };
-
-  if (navSavedLink) {
-    navSavedLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      openSavedModalFn(navSavedLink);
-    });
-  }
-
-  if (mobileSavedTab) {
-    mobileSavedTab.addEventListener("click", () => {
-      openSavedModalFn(mobileSavedTab);
-    });
-  }
-
   if (viewAllRecentBtn) {
     viewAllRecentBtn.addEventListener("click", () => {
-      openSavedModalFn(viewAllRecentBtn);
-    });
-  }
-
-  if (closeSavedModal) {
-    closeSavedModal.addEventListener("click", () => {
-      closeModal(savedPromptsModal);
-      updateNavActiveState(window.location.hash || "#generate");
+      window.location.href = "/history.html";
     });
   }
 
@@ -767,10 +571,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("click", (e) => {
     if (e.target === templatesModal) {
       closeModal(templatesModal);
-    }
-    if (e.target === savedPromptsModal) {
-      closeModal(savedPromptsModal);
-      updateNavActiveState(window.location.hash || "#generate");
     }
   });
 
@@ -780,7 +580,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const openModalElem = document.querySelector(".modal-backdrop.open");
       if (openModalElem) {
         closeModal(openModalElem);
-        updateNavActiveState(window.location.hash || "#generate");
       }
     }
   });
@@ -791,8 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
     navItems.forEach((item) => {
       if (
         (hash === "#home" && item.id === "navHomeLink") ||
-        (hash === "#generate" && item.id === "navGenerateLink") ||
-        (hash === "#saved" && item.id === "navSavedLink")
+        (hash === "#generate" && item.id === "navGenerateLink")
       ) {
         item.classList.add("nav-pill-active");
       } else {
@@ -819,16 +617,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("hashchange", () => {
     if (window.location.hash) {
+      handleUseAgainHash();
       updateNavActiveState(window.location.hash);
     }
-  });
-
-  // Mobile Bottom Bar Tabs click state
-  document.querySelectorAll(".bottom-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".bottom-tab").forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-    });
   });
 
   // Dynamic copyright year
@@ -840,6 +631,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load templates from API
   fetchTemplates();
 
-  // Initial render of recent prompts
+  // Initial render of recent prompts from LRU cache
   renderRecentPrompts();
+
+  // Check if loaded with #use-<id>
+  handleUseAgainHash();
 });
