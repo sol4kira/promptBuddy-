@@ -157,17 +157,35 @@ select:focus-visible,
   padding: 7px 16px;
   border-radius: var(--radius-full);
   transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
+  border: 1px solid transparent;
+  text-decoration: none;
 }
 
-.nav-item:hover {
+.nav-btn {
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: inherit;
+  border: 1px solid transparent;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+}
+
+.nav-item:hover,
+.nav-btn:hover {
   color: var(--color-accent);
 }
 
+a.nav-item[aria-current="page"],
+.nav-item[aria-current="page"],
 .nav-pill-active {
   color: var(--color-accent);
   font-weight: 600;
   background-color: var(--color-primary-light);
-  border: 1px solid var(--border-banner);
+  border-color: var(--border-banner);
 }
 
 /* ==========================================================================
@@ -204,8 +222,43 @@ select:focus-visible,
 .welcome-header {
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;
+}
+
+.welcome-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.btn-new-prompt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 14px;
+  min-height: 44px;
+  background-color: var(--color-primary-light);
+  border: 1px solid var(--border-banner);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 4px;
+  transition: all var(--transition-fast);
+}
+
+.btn-new-prompt:hover {
+  background-color: var(--color-primary);
+  color: var(--text-on-primary);
+  border-color: var(--color-primary-hover);
+  box-shadow: 0 2px 8px rgba(21, 115, 95, 0.35);
+  transform: translateY(-1px);
 }
 
 .welcome-icon-box {
@@ -1096,9 +1149,21 @@ select:focus-visible,
   font-weight: 500;
   flex: 1;
   height: 100%;
+  min-height: 44px;
+  min-width: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
   transition: color var(--transition-fast);
+  padding: 4px 0;
 }
 
+.bottom-tab span {
+  white-space: nowrap;
+}
+
+.bottom-tab[aria-current="page"],
 .bottom-tab.active {
   color: var(--color-accent);
   font-weight: 600;
@@ -1240,6 +1305,24 @@ select:focus-visible,
   display: flex;
 }
 
+.toast-undo-btn {
+  background-color: var(--color-accent);
+  color: #0d1412;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 14px;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.toast-undo-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1329,6 +1412,17 @@ select:focus-visible,
     margin-bottom: 14px;
     min-width: 0;
     box-sizing: border-box;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .welcome-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
   }
 
   .welcome-icon-box {

@@ -21,6 +21,38 @@ function showToast(message, duration = 3000) {
   }, duration);
 }
 
+// Toast notification helper with clickable Undo action (6s duration)
+function showUndoToast(message, onUndo, duration = 6000) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = "";
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = message;
+
+  const undoBtn = document.createElement("button");
+  undoBtn.type = "button";
+  undoBtn.className = "toast-undo-btn";
+  undoBtn.textContent = "Undo";
+  undoBtn.setAttribute("aria-label", "Undo clearing form");
+
+  undoBtn.addEventListener("click", () => {
+    onUndo();
+    toast.classList.remove("show");
+    clearTimeout(toast._timer);
+  });
+
+  toast.appendChild(textSpan);
+  toast.appendChild(undoBtn);
+  toast.classList.add("show");
+
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove("show");
+    toast.textContent = "";
+  }, duration);
+}
+
 // Update Character Counter
 function updateCharCounter() {
   const goalInput = document.getElementById("goal");
@@ -92,7 +124,7 @@ async function fetchTemplates() {
         </div>
       `;
     }
-    showToast("⚠️ Could not load prompt templates");
+    showToast("Could not load prompt templates");
   }
 }
 
@@ -215,7 +247,7 @@ function removeRecentPrompt(id) {
   const removed = store.remove(id);
   if (removed) {
     renderRecentPrompts();
-    showToast("🗑️ Prompt removed from recents");
+    showToast("Prompt removed from recents");
   }
 }
 
@@ -359,11 +391,12 @@ function loadSamplePrompt(goalText, style = "detail", audience = "beginner", len
   }
 }
 
-// Mobile Bottom Nav Helper: Focus Generator
+// Nav Helper: Focus Generator
 function focusGenerator() {
   const goalInput = document.getElementById("goal");
   if (goalInput) {
-    goalInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    goalInput.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "center" });
     goalInput.focus();
   }
 }
@@ -396,38 +429,146 @@ function closeModal(modal) {
   }
 }
 
-// Handle "Use again" URL hash from history.html
+// Handle "Use again" URL hash from history.html (#use=<id> or #use-<id>)
 function handleUseAgainHash() {
   const hash = window.location.hash;
-  if (hash && hash.startsWith("#use-")) {
-    const id = hash.slice(5);
-    const entry = store.idMap.get(id);
-    if (entry) {
-      loadSamplePrompt(entry.goal, entry.style, entry.audience, entry.length, entry.context);
-      // Re-using a prompt counts as a use: moves to front of recents
-      store.add({ ...entry });
-      renderRecentPrompts();
-      showToast("✓ Loaded prompt from history!");
-      // Clean up hash without triggering navigation reload
-      history.replaceState(null, "", window.location.pathname);
-    }
+  if (!hash || !hash.includes("use")) return;
+
+  const match = hash.match(/^#use[-=](.+)$/);
+  if (!match) return;
+
+  const id = decodeURIComponent(match[1]);
+  const entry = store.idMap.get(id);
+  if (entry) {
+    // Fill the generator without auto-generating
+    loadSamplePrompt(entry.goal, entry.style, entry.audience, entry.length, entry.context);
+    // Remove hash immediately with history.replaceState so a page refresh does not refill
+    history.replaceState(null, "", window.location.pathname);
+    showToast("Prompt loaded into editor");
+  }
+}
+
+// Handle template deep-link (#template=<id> or #template-<id>)
+function handleTemplateHash() {
+  const hash = window.location.hash;
+  if (!hash || !hash.includes("template")) return;
+
+  const match = hash.match(/^#template[-=](.+)$/);
+  if (!match) return;
+
+  const templateId = decodeURIComponent(match[1]);
+  const applyFoundTemplate = () => {
+    selectTemplate(templateId);
+    history.replaceState(null, "", window.location.pathname);
+  };
+
+  if (loadedTemplates.length === 0) {
+    fetchTemplates().then(applyFoundTemplate);
+  } else {
+    applyFoundTemplate();
   }
 }
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
   const goalInput = document.getElementById("goal");
+  const contextInput = document.getElementById("context");
+  const contextAccordion = document.getElementById("contextAccordion");
+  const styleSelect = document.getElementById("style");
+  const audienceSelect = document.getElementById("audience");
+  const lengthSelect = document.getElementById("length");
   const generateBtn = document.getElementById("generates");
+  const newPromptBtn = document.getElementById("newPromptBtn");
   const copyBtn = document.getElementById("copy");
   const copyBtnText = document.getElementById("copyBtnText");
   const outputElem = document.getElementById("output");
+  const outputBadge = document.getElementById("outputBadge");
 
   let hasGeneratedPrompt = false;
+
+  // In-memory snapshot for "New prompt" Undo functionality
+  let undoSnapshot = null;
+  let undoTimer = null;
 
   // Character counter listener
   if (goalInput) {
     goalInput.addEventListener("input", updateCharCounter);
     updateCharCounter();
+  }
+
+  // "New prompt" button click handler
+  if (newPromptBtn) {
+    newPromptBtn.addEventListener("click", () => {
+      // 1. Capture in-memory snapshot before clearing
+      undoSnapshot = {
+        goal: goalInput ? goalInput.value : "",
+        context: contextInput ? contextInput.value : "",
+        style: styleSelect ? styleSelect.value : "concise",
+        audience: audienceSelect ? audienceSelect.value : "beginner",
+        length: lengthSelect ? lengthSelect.value : "short",
+        output: outputElem ? outputElem.textContent : "",
+        hasGeneratedPrompt,
+        accordionOpen: contextAccordion ? contextAccordion.open : false,
+      };
+
+      // 2. Clear goal and context, reset character counter
+      if (goalInput) goalInput.value = "";
+      if (contextInput) contextInput.value = "";
+      updateCharCounter();
+
+      // 3. Collapse context accordion
+      if (contextAccordion) contextAccordion.open = false;
+
+      // 4. Reset output area to placeholder state
+      if (outputElem) outputElem.textContent = "Your Prompt Will be here.";
+      if (outputBadge) outputBadge.textContent = "Ready to use";
+      if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
+      hasGeneratedPrompt = false;
+
+      // 5. Keep the user's dropdown choices (style, audience, length) intact
+
+      // 6. Remove any lingering #use... from URL
+      if (window.location.hash.includes("use")) {
+        history.replaceState(null, "", window.location.pathname);
+      }
+
+      // 7. Move focus to goal textarea and scroll into view (respecting prefers-reduced-motion)
+      if (goalInput) {
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        goalInput.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+          block: "center",
+        });
+        goalInput.focus();
+      }
+
+      // 8. Show Undo toast for 6 seconds
+      clearTimeout(undoTimer);
+      showUndoToast(
+        "Form cleared",
+        () => {
+          if (!undoSnapshot) return;
+          if (goalInput) goalInput.value = undoSnapshot.goal;
+          if (contextInput) contextInput.value = undoSnapshot.context;
+          if (styleSelect) styleSelect.value = undoSnapshot.style;
+          if (audienceSelect) audienceSelect.value = undoSnapshot.audience;
+          if (lengthSelect) lengthSelect.value = undoSnapshot.length;
+          if (contextAccordion) contextAccordion.open = undoSnapshot.accordionOpen;
+          if (outputElem) outputElem.textContent = undoSnapshot.output;
+          if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
+          hasGeneratedPrompt = undoSnapshot.hasGeneratedPrompt;
+          updateCharCounter();
+          undoSnapshot = null;
+          showToast("Restored prompt");
+        },
+        6000
+      );
+
+      // Discard snapshot when toast expires
+      undoTimer = setTimeout(() => {
+        undoSnapshot = null;
+      }, 6000);
+    });
   }
 
   // Preset buttons (replaces inline onclick attributes)
@@ -437,17 +578,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Mobile Bottom Bar Tabs click handlers (replaces inline onclick)
-  const mobileHomeTab = document.getElementById("mobileHomeTab");
-  if (mobileHomeTab) {
-    mobileHomeTab.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }
-
+  // Mobile Bottom Bar Tabs click handlers
   const mobileGenerateTab = document.getElementById("mobileGenerateTab");
   if (mobileGenerateTab) {
-    mobileGenerateTab.addEventListener("click", () => {
+    mobileGenerateTab.addEventListener("click", (e) => {
+      e.preventDefault();
       focusGenerator();
     });
   }
@@ -478,7 +613,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       renderRecentPrompts();
-      showToast("✨ Prompt generated successfully!");
+      showToast("Prompt generated successfully!");
 
       if (window.innerWidth < 768 && outputElem) {
         outputElem.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -529,28 +664,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (copied) {
         if (copyBtnText) copyBtnText.textContent = "Copied!";
-        showToast("✓ Copied prompt to clipboard!");
+        showToast("Copied prompt to clipboard!");
         setTimeout(() => {
           if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
         }, 2200);
       } else {
-        showToast("⚠️ Could not copy prompt to clipboard. Please copy manually.");
+        showToast("Could not copy prompt to clipboard. Please copy manually.");
       }
     });
   }
 
-  // Templates Modal Handlers
+  // Templates Modal Handlers (opened from banner button, header nav button, or mobile bottom tab)
   const viewTemplatesBtn = document.getElementById("viewTemplatesBtn");
+  const navTemplatesBtn = document.getElementById("navTemplatesBtn");
+  const mobileTemplatesTab = document.getElementById("mobileTemplatesTab");
   const templatesModal = document.getElementById("templatesModal");
   const closeTemplatesModal = document.getElementById("closeTemplatesModal");
 
+  function triggerOpenTemplates(triggerBtn) {
+    if (loadedTemplates.length === 0) {
+      fetchTemplates();
+    }
+    openModal(templatesModal, triggerBtn);
+  }
+
   if (viewTemplatesBtn) {
-    viewTemplatesBtn.addEventListener("click", () => {
-      if (loadedTemplates.length === 0) {
-        fetchTemplates();
-      }
-      openModal(templatesModal, viewTemplatesBtn);
-    });
+    viewTemplatesBtn.addEventListener("click", () => triggerOpenTemplates(viewTemplatesBtn));
+  }
+  if (navTemplatesBtn) {
+    navTemplatesBtn.addEventListener("click", () => triggerOpenTemplates(navTemplatesBtn));
+  }
+  if (mobileTemplatesTab) {
+    mobileTemplatesTab.addEventListener("click", () => triggerOpenTemplates(mobileTemplatesTab));
   }
 
   if (closeTemplatesModal) {
@@ -584,33 +729,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Navigation Active Pill Updates
-  function updateNavActiveState(hash) {
-    const navItems = document.querySelectorAll(".desktop-nav .nav-item");
-    navItems.forEach((item) => {
-      if (
-        (hash === "#home" && item.id === "navHomeLink") ||
-        (hash === "#generate" && item.id === "navGenerateLink")
-      ) {
-        item.classList.add("nav-pill-active");
-      } else {
-        item.classList.remove("nav-pill-active");
-      }
-    });
-  }
-
-  const navHomeLink = document.getElementById("navHomeLink");
+  // Header Generate link handler (smooth scroll to editor and focus)
   const navGenerateLink = document.getElementById("navGenerateLink");
-
-  if (navHomeLink) {
-    navHomeLink.addEventListener("click", () => {
-      updateNavActiveState("#home");
-    });
-  }
-
   if (navGenerateLink) {
-    navGenerateLink.addEventListener("click", () => {
-      updateNavActiveState("#generate");
+    navGenerateLink.addEventListener("click", (e) => {
+      e.preventDefault();
       focusGenerator();
     });
   }
@@ -618,7 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("hashchange", () => {
     if (window.location.hash) {
       handleUseAgainHash();
-      updateNavActiveState(window.location.hash);
+      handleTemplateHash();
     }
   });
 
@@ -634,6 +757,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial render of recent prompts from LRU cache
   renderRecentPrompts();
 
-  // Check if loaded with #use-<id>
+  // Check if loaded with #use-<id> or #template-<id>
   handleUseAgainHash();
+  handleTemplateHash();
 });

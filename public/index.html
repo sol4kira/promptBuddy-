@@ -14,9 +14,9 @@
 </head>
 <body>
   <!-- Top Navigation Header -->
-  <header class="app-header" id="home">
+  <header class="app-header">
     <div class="header-inner">
-      <a href="#home" class="brand-logo" aria-label="PromptBuddy Home">
+      <a href="/" class="brand-logo" aria-label="PromptBuddy Home">
         <svg class="leaf-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M26.2 4.1C18.8 4.7 6.5 11.2 6.5 21.8c0 4.2 3.3 6.1 6.5 6.1 7.8 0 13.8-9.4 13.8-18.4 0-1.1-.1-2.1-.3-2.9-.6-.9-1.5-1.5-2.5-2.1-1.1-.3-2.4-.4-3.8-.4z" fill="#34d399"/>
           <path d="M21 23c-3.5 0-6.8-2.5-7.4-6.8 4.3-1.1 9.4-4.2 11.3-8.8-.4 6.7-1.8 15.6-3.9 15.6z" fill="#10b981" opacity="0.6"/>
@@ -26,9 +26,9 @@
 
       <!-- Desktop Nav Links (Hidden on mobile) -->
       <nav class="desktop-nav" aria-label="Main Navigation">
-        <a href="#home" class="nav-item" id="navHomeLink">Home</a>
-        <a href="#generate" class="nav-item nav-pill-active" id="navGenerateLink">Generate Prompt</a>
-        <a href="/history.html" class="nav-item" id="navSavedLink">Saved</a>
+        <a href="/" class="nav-item" aria-current="page" id="navGenerateLink">Generate</a>
+        <button type="button" class="nav-item nav-btn" id="navTemplatesBtn">Templates</button>
+        <a href="/history.html" class="nav-item" id="navHistoryLink">History</a>
       </nav>
     </div>
   </header>
@@ -41,16 +41,25 @@
       <section class="main-card" id="generate">
         <!-- Welcome Header -->
         <div class="welcome-header">
-          <div class="welcome-icon-box">
-            <svg class="welcome-leaf" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M26.2 4.1C18.8 4.7 6.5 11.2 6.5 21.8c0 4.2 3.3 6.1 6.5 6.1 7.8 0 13.8-9.4 13.8-18.4 0-1.1-.1-2.1-.3-2.9-.6-.9-1.5-1.5-2.5-2.1-1.1-.3-2.4-.4-3.8-.4z" fill="#34d399"/>
-              <path d="M21 23c-3.5 0-6.8-2.5-7.4-6.8 4.3-1.1 9.4-4.2 11.3-8.8-.4 6.7-1.8 15.6-3.9 15.6z" fill="#10b981"/>
+          <div class="welcome-header-left">
+            <div class="welcome-icon-box">
+              <svg class="welcome-leaf" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M26.2 4.1C18.8 4.7 6.5 11.2 6.5 21.8c0 4.2 3.3 6.1 6.5 6.1 7.8 0 13.8-9.4 13.8-18.4 0-1.1-.1-2.1-.3-2.9-.6-.9-1.5-1.5-2.5-2.1-1.1-.3-2.4-.4-3.8-.4z" fill="#34d399"/>
+                <path d="M21 23c-3.5 0-6.8-2.5-7.4-6.8 4.3-1.1 9.4-4.2 11.3-8.8-.4 6.7-1.8 15.6-3.9 15.6z" fill="#10b981"/>
+              </svg>
+            </div>
+            <div class="welcome-text">
+              <h1 class="welcome-title">Welcome to PromptBuddy!</h1>
+              <p class="welcome-subtitle">Generate clear, useful prompts for study, research, or coding.</p>
+            </div>
+          </div>
+          <button type="button" id="newPromptBtn" class="btn-new-prompt" title="Start a fresh prompt">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-          </div>
-          <div class="welcome-text">
-            <h1 class="welcome-title">Welcome to PromptBuddy!</h1>
-            <p class="welcome-subtitle">Generate clear, useful prompts for study, research, or coding.</p>
-          </div>
+            <span>New prompt</span>
+          </button>
         </div>
 
         <!-- Ideas Banner -->
@@ -391,26 +400,29 @@
 
   <!-- Mobile Bottom Tab Bar (Only navigation used on Mobile) -->
   <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
-    <button type="button" class="bottom-tab" data-tab="home" id="mobileHomeTab">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-      <span>Home</span>
-    </button>
-
-    <button type="button" class="bottom-tab active" data-tab="generate" id="mobileGenerateTab">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <a href="/" class="bottom-tab" id="mobileGenerateTab" aria-current="page">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/>
       </svg>
       <span>Generate</span>
+    </a>
+
+    <button type="button" class="bottom-tab" id="mobileTemplatesTab">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      <span>Templates</span>
     </button>
 
-    <a href="/history.html" class="bottom-tab" data-tab="saved" id="mobileSavedTab">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+    <a href="/history.html" class="bottom-tab" id="mobileHistoryTab">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
       </svg>
-      <span>Saved</span>
+      <span>History</span>
     </a>
   </nav>
 

@@ -225,9 +225,9 @@ function renderHistoryList(entries, query = "") {
       const fullText = buildPromptText(item);
       const success = await copyToClipboard(fullText);
       if (success) {
-        showToast("✓ Copied prompt to clipboard!");
+        showToast("Copied prompt to clipboard!");
       } else {
-        showToast("⚠️ Could not copy to clipboard. Please copy manually.");
+        showToast("Could not copy to clipboard. Please copy manually.");
       }
     });
 
@@ -245,7 +245,7 @@ function renderHistoryList(entries, query = "") {
     `;
     deleteBtn.addEventListener("click", () => {
       store.remove(item.id);
-      showToast("🗑️ Prompt deleted from history");
+      showToast("Prompt deleted from history");
       // Re-run current search query
       const currentQuery = (document.getElementById("historySearchInput")?.value || "").trim();
       renderHistoryList(store.search(currentQuery), currentQuery);
@@ -313,10 +313,110 @@ document.addEventListener("DOMContentLoaded", () => {
         if (searchInput) searchInput.value = "";
         if (clearSearchBtn) clearSearchBtn.style.display = "none";
         renderHistoryList([], "");
-        showToast("🧹 All prompt history cleared");
+        showToast("All prompt history cleared");
       }
     });
   }
+
+  // Templates Modal support on History Page
+  const navTemplatesBtn = document.getElementById("navTemplatesBtn");
+  const mobileTemplatesTab = document.getElementById("mobileTemplatesTab");
+  const templatesModal = document.getElementById("templatesModal");
+  const closeTemplatesModal = document.getElementById("closeTemplatesModal");
+  const templatesGrid = document.getElementById("templatesGrid");
+
+  let lastFocusedElement = null;
+  let loadedTemplates = [];
+
+  function openTemplatesModal(trigger) {
+    if (!templatesModal) return;
+    lastFocusedElement = trigger || document.activeElement;
+    templatesModal.setAttribute("aria-hidden", "false");
+    templatesModal.classList.add("open");
+
+    if (loadedTemplates.length === 0) {
+      fetch("/api/templates")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((templates) => {
+          loadedTemplates = templates;
+          renderTemplatesGrid(templates);
+        })
+        .catch(() => {});
+    }
+
+    if (closeTemplatesModal) {
+      closeTemplatesModal.focus();
+    }
+  }
+
+  function closeTemplatesModalFunc() {
+    if (!templatesModal) return;
+    templatesModal.setAttribute("aria-hidden", "true");
+    templatesModal.classList.remove("open");
+    if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+      lastFocusedElement.focus();
+      lastFocusedElement = null;
+    }
+  }
+
+  function renderTemplatesGrid(templates) {
+    if (!templatesGrid) return;
+    templatesGrid.textContent = "";
+    templates.forEach((t) => {
+      const card = document.createElement("div");
+      card.className = "template-card";
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("role", "button");
+
+      const tag = document.createElement("span");
+      tag.className = "template-tag";
+      tag.textContent = t.category || "General";
+
+      const title = document.createElement("h4");
+      title.textContent = t.title || "";
+
+      const desc = document.createElement("p");
+      desc.textContent = t.description || "";
+
+      card.appendChild(tag);
+      card.appendChild(title);
+      card.appendChild(desc);
+
+      const selectAndRedirect = () => {
+        window.location.href = `/#template=${t.id}`;
+      };
+
+      card.addEventListener("click", selectAndRedirect);
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          selectAndRedirect();
+        }
+      });
+
+      templatesGrid.appendChild(card);
+    });
+  }
+
+  if (navTemplatesBtn) {
+    navTemplatesBtn.addEventListener("click", () => openTemplatesModal(navTemplatesBtn));
+  }
+  if (mobileTemplatesTab) {
+    mobileTemplatesTab.addEventListener("click", () => openTemplatesModal(mobileTemplatesTab));
+  }
+  if (closeTemplatesModal) {
+    closeTemplatesModal.addEventListener("click", closeTemplatesModalFunc);
+  }
+  window.addEventListener("click", (e) => {
+    if (e.target === templatesModal) {
+      closeTemplatesModalFunc();
+    }
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && templatesModal && templatesModal.classList.contains("open")) {
+      closeTemplatesModalFunc();
+    }
+  });
 
   // Dynamic copyright year
   const footerYear = document.getElementById("footerYear");
