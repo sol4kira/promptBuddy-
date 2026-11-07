@@ -5,7 +5,7 @@
 [![Live Demo](https://img.shields.io/badge/promptbuddy-eight.vercel.app-10b981?style=for-the-badge&logo=promptbuddy&logoColor=white)](promptbuddy-eight.vercel.app/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![Tests](https://img.shields.io/badge/Tests-26%20Passing-10b981?style=for-the-badge&logo=github-actions&logoColor=white)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-31%20Passing-10b981?style=for-the-badge&logo=github-actions&logoColor=white)](#testing)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue?style=for-the-badge)](LICENSE)
 
 ---
@@ -83,6 +83,7 @@ promptBuddy-/
 │   ├── style.css                 # Responsive stylesheet & design system
 │   ├── script.js                 # Main generator controller & DOM bindings
 │   └── js/                       # ES modules
+│       ├── history.js            # History page controller & DOM bindings
 │       ├── lru.js                # Custom Doubly-Linked List LRU Cache
 │       ├── trie.js               # Custom Prefix Tree & tokenizer
 │       ├── storage.js            # LocalStorage persistence & migration
@@ -91,8 +92,15 @@ promptBuddy-/
 ├── src/                          # Express backend
 │   ├── app.js                    # Express app configuration & middleware
 │   ├── server.js                 # HTTP server entrypoint
+│   ├── controllers/
+│   │   └── templates.controller.js # Request handlers for templates
+│   ├── data/
+│   │   └── templates.json        # Prompt templates JSON seed data
+│   ├── middleware/
+│   │   ├── errorHandler.js       # Global error handling middleware
+│   │   └── notFound.js           # 404 handler middleware
 │   ├── routes/
-│   │   └── templates.js          # REST API endpoints for templates
+│   │   └── templates.routes.js   # REST API route definitions
 │   └── services/
 │       └── templateService.js    # In-memory template data store
 ├── tests/                        # Automated test suite (Node Test Runner)
@@ -100,7 +108,9 @@ promptBuddy-/
 │   ├── lru.test.js               # LRU Cache lifecycle & edge cases
 │   ├── trie.test.js              # Trie prefix search & pruning tests
 │   ├── historyStore.test.js      # Store integration & search tests
-│   └── server.test.js            # Express routing & static asset tests
+│   ├── server.test.js            # Express routing & static asset tests
+│   └── regression.test.js        # End-to-end regression tests (Playwright)
+├── LICENSE                       # ISC License
 ├── package.json                  # Project metadata & scripts
 └── README.md                     # Project documentation
 ```
@@ -152,33 +162,36 @@ Run the full automated test suite:
 npm test
 ```
 
-### Test Coverage Overview (26 Tests across 6 Suites)
+### Test Coverage Overview (31 Tests across 7 Suites)
 - **Stage A (Storage)**: Fingerprint hashing, v1-to-v2 schema migrations, storage error handling, and 200-item LRU caps.
 - **Stage B (Data Structures)**: Node pointer integrity, LRU eviction cycles, Trie tokenization, prefix search, and branch pruning.
 - **Stage C (History Store)**: Deduplication, recency order, multi-token `AND` queries, and storage rebuilds.
 - **Stage D/E/F/G (Server & UI)**: HTTP 200 routing, API responses, 404 handling, navigation markup, and responsive UI structure.
+- **Stage P0 & P1 (Regression & Accessibility)**: Playwright end-to-end tests for empty-goal validation, stale copy invalidation, templates unwrapping, modal focus traps, background inert, and 44px touch targets.
 
 ---
 
 ## API Reference
 
 ### `GET /api/templates`
-Returns the full array of available prompt templates.
+Returns the available prompt templates wrapped in a `templates` array.
 
 **Response `200 OK`**:
 ```json
-[
-  {
-    "id": "code-review",
-    "title": "Comprehensive Code Review",
-    "category": "Coding",
-    "description": "Analyze code for security, performance, and best practices.",
-    "goal": "Review the following code for bugs, edge cases, and architectural improvements.",
-    "style": "detail",
-    "audience": "advanced",
-    "length": "long"
-  }
-]
+{
+  "templates": [
+    {
+      "id": "code-review",
+      "title": "Comprehensive Code Review",
+      "category": "Coding",
+      "description": "Analyze code for security, performance, and best practices.",
+      "goal": "Review the following code for bugs, edge cases, and architectural improvements.",
+      "style": "detail",
+      "audience": "advanced",
+      "length": "long"
+    }
+  ]
+}
 ```
 
 ### `GET /api/templates/:id`
