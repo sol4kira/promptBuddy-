@@ -328,6 +328,29 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastFocusedElement = null;
   let loadedTemplates = [];
 
+  async function fetchTemplates() {
+    try {
+      const res = await fetch("/api/templates");
+      if (!res.ok) {
+        throw new Error(`Failed to fetch templates: HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      loadedTemplates = data.templates || [];
+      renderTemplatesGrid(loadedTemplates);
+    } catch (err) {
+      console.error("Error loading templates:", err);
+      if (templatesGrid) {
+        templatesGrid.innerHTML = `
+          <div class="templates-error-state" style="grid-column: 1 / -1; text-align: center; padding: 24px 16px; color: var(--text-muted); background: var(--bg-card-subtle); border: 1px dashed var(--border-medium); border-radius: var(--radius-sm);">
+            <p style="color: #f87171; font-weight: 500; margin-bottom: 6px;">Failed to load prompt templates.</p>
+            <p style="font-size: 12.5px;">Please check your connection and try refreshing the page.</p>
+          </div>
+        `;
+      }
+      showToast("Could not load prompt templates");
+    }
+  }
+
   function openTemplatesModal(trigger) {
     if (!templatesModal) return;
     lastFocusedElement = trigger || document.activeElement;
@@ -335,13 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     templatesModal.classList.add("open");
 
     if (loadedTemplates.length === 0) {
-      fetch("/api/templates")
-        .then((res) => (res.ok ? res.json() : []))
-        .then((templates) => {
-          loadedTemplates = templates;
-          renderTemplatesGrid(templates);
-        })
-        .catch(() => {});
+      fetchTemplates();
     }
 
     if (closeTemplatesModal) {
@@ -361,7 +378,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderTemplatesGrid(templates) {
     if (!templatesGrid) return;
-    templatesGrid.textContent = "";
+    templatesGrid.innerHTML = "";
+    if (!templates || templates.length === 0) {
+      templatesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">No templates available.</p>`;
+      return;
+    }
     templates.forEach((t) => {
       const card = document.createElement("div");
       card.className = "template-card";
