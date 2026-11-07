@@ -15,6 +15,38 @@ function showToast(message, duration = 3000) {
   }, duration);
 }
 
+// Toast notification helper with clickable Undo action (6s duration)
+function showUndoToast(message, onUndo, duration = 6000) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = "";
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = message;
+
+  const undoBtn = document.createElement("button");
+  undoBtn.type = "button";
+  undoBtn.className = "toast-undo-btn";
+  undoBtn.textContent = "Undo";
+  undoBtn.setAttribute("aria-label", "Undo deleting prompt");
+
+  undoBtn.addEventListener("click", () => {
+    onUndo();
+    toast.classList.remove("show");
+    clearTimeout(toast._timer);
+  });
+
+  toast.appendChild(textSpan);
+  toast.appendChild(undoBtn);
+  toast.classList.add("show");
+
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove("show");
+    toast.textContent = "";
+  }, duration);
+}
+
 // Builds the full copyable prompt string matching the generator's buildPrompt format
 function buildPromptText(item) {
   let prompt = "";
@@ -244,11 +276,19 @@ function renderHistoryList(entries, query = "") {
       <span>Delete</span>
     `;
     deleteBtn.addEventListener("click", () => {
+      const deletedItem = item;
       store.remove(item.id);
-      showToast("Prompt deleted from history");
-      // Re-run current search query
-      const currentQuery = (document.getElementById("historySearchInput")?.value || "").trim();
-      renderHistoryList(store.search(currentQuery), currentQuery);
+      const refreshList = () => {
+        const currentQuery = (document.getElementById("historySearchInput")?.value || "").trim();
+        renderHistoryList(store.search(currentQuery), currentQuery);
+      };
+      refreshList();
+
+      showUndoToast("Prompt deleted from history", () => {
+        store.add(deletedItem);
+        refreshList();
+        showToast("Prompt restored");
+      }, 6000);
     });
 
     actions.appendChild(useBtn);
