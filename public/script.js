@@ -62,8 +62,24 @@ function updateCharCounter() {
   counter.textContent = `${count}/1000`;
 }
 
+// Track valid generated prompt state
+let hasGeneratedPrompt = false;
+
+// Reset output state when form changes
+function resetGeneratedState() {
+  hasGeneratedPrompt = false;
+  const outputElem = document.getElementById("output");
+  const outputBadge = document.getElementById("outputBadge");
+  const copyBtnText = document.getElementById("copyBtnText");
+
+  if (outputElem) outputElem.textContent = "Your Prompt Will be here.";
+  if (outputBadge) outputBadge.textContent = "Ready to use";
+  if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
+}
+
 // Quick Preset Handlers
 function applyPreset(name) {
+  resetGeneratedState();
   const goalInput = document.getElementById("goal");
   const contextInput = document.getElementById("context");
   const styleSelect = document.getElementById("style");
@@ -171,6 +187,7 @@ function renderTemplatesList(templates) {
 }
 
 function selectTemplate(templateId) {
+  resetGeneratedState();
   const t = loadedTemplates.find((item) => item.id === templateId);
   if (!t) return;
 
@@ -371,6 +388,7 @@ function renderRecentPrompts() {
 
 // Load a selected prompt into the form
 function loadSamplePrompt(goalText, style = "detail", audience = "beginner", length = "short", context = "") {
+  resetGeneratedState();
   const goalInput = document.getElementById("goal");
   const contextInput = document.getElementById("context");
   const styleSelect = document.getElementById("style");
@@ -484,16 +502,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const outputElem = document.getElementById("output");
   const outputBadge = document.getElementById("outputBadge");
 
-  let hasGeneratedPrompt = false;
-
   // In-memory snapshot for "New prompt" Undo functionality
   let undoSnapshot = null;
   let undoTimer = null;
 
-  // Character counter listener
+  // Form input listeners to reset generated state and counter
   if (goalInput) {
-    goalInput.addEventListener("input", updateCharCounter);
+    goalInput.addEventListener("input", () => {
+      updateCharCounter();
+      resetGeneratedState();
+    });
     updateCharCounter();
+  }
+  if (contextInput) {
+    contextInput.addEventListener("input", resetGeneratedState);
+  }
+  if (styleSelect) {
+    styleSelect.addEventListener("change", resetGeneratedState);
+  }
+  if (audienceSelect) {
+    audienceSelect.addEventListener("change", resetGeneratedState);
+  }
+  if (lengthSelect) {
+    lengthSelect.addEventListener("change", resetGeneratedState);
   }
 
   // "New prompt" button click handler
@@ -520,10 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (contextAccordion) contextAccordion.open = false;
 
       // 4. Reset output area to placeholder state
-      if (outputElem) outputElem.textContent = "Your Prompt Will be here.";
-      if (outputBadge) outputBadge.textContent = "Ready to use";
-      if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
-      hasGeneratedPrompt = false;
+      resetGeneratedState();
 
       // 5. Keep the user's dropdown choices (style, audience, length) intact
 
@@ -630,7 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const text = outputElem ? outputElem.textContent : "";
-      if (!text) {
+      if (!text || text === "Your Prompt Will be here.") {
         showToast("Please generate a prompt first!");
         return;
       }
