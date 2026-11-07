@@ -2,7 +2,7 @@
 
 > **Craft clear, structured, and high-impact AI prompts for study, research, and development.**
 
-[![Live Demo](https://img.shields.io/badge/promptbuddy-eight.vercel.app-10b981?style=for-the-badge&logo=promptbuddy&logoColor=white)](https://promptbuddy-eight.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/promptbuddy-eight.vercel.app-10b981?style=for-the-badge&logo=promptbuddy&logoColor=white)](promptbuddy-eight.vercel.app/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![Tests](https://img.shields.io/badge/Tests-26%20Passing-10b981?style=for-the-badge&logo=github-actions&logoColor=white)](#testing)
@@ -16,7 +16,7 @@
 
 PromptBuddy is built with **zero external frontend dependencies** and features a custom client-side search and caching engine powered by **LRU Cache** and **Trie** data structures implemented from scratch.
 
-**Live Application:** [promptbuddy-eight.vercel.app/](promptbuddy-eight.vercel.app/)
+**Live Application:** ([promptbuddy-eight.vercel.app/](https://promptbuddy-eight.vercel.app/))
 
 ---
 
@@ -199,7 +199,7 @@ Returns a specific template by its unique identifier.
 
 **Kirubel Solomon**  
 - GitHub: [@sol4kira](https://github.com/sol4kira)  
-- Live Project:  [promptbuddy-eight.vercel.app/](promptbuddy-eight.vercel.app/)
+- Live Project:  ([promptbuddy-eight.vercel.app/](https://promptbuddy-eight.vercel.app/))
 ---
 
 ## License
