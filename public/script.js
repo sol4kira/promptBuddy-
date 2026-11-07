@@ -294,6 +294,7 @@ function renderRecentPrompts() {
   if (recents.length === 0) {
     const emptyDiv = document.createElement("div");
     emptyDiv.className = "recent-empty-state";
+    emptyDiv.setAttribute("role", "listitem");
     emptyDiv.textContent = "No recent prompts yet. Generate a prompt to see it here!";
     listContainer.appendChild(emptyDiv);
     return;
