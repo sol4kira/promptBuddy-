@@ -674,8 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Templates Modal Handlers (opened from banner button, header nav button, or mobile bottom tab)
-  const viewTemplatesBtn = document.getElementById("viewTemplatesBtn");
+  // Templates Modal Handlers (opened from header nav button or mobile bottom tab)
   const navTemplatesBtn = document.getElementById("navTemplatesBtn");
   const mobileTemplatesTab = document.getElementById("mobileTemplatesTab");
   const templatesModal = document.getElementById("templatesModal");
@@ -688,9 +687,6 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal(templatesModal, triggerBtn);
   }
 
-  if (viewTemplatesBtn) {
-    viewTemplatesBtn.addEventListener("click", () => triggerOpenTemplates(viewTemplatesBtn));
-  }
   if (navTemplatesBtn) {
     navTemplatesBtn.addEventListener("click", () => triggerOpenTemplates(navTemplatesBtn));
   }

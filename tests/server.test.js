@@ -2,7 +2,7 @@ import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import app from "../src/app.js";
 
-describe("Stage D, E, F: Server Routing & UX Navigation", () => {
+describe("Stage D, E, F, G: Server Routing, UX Navigation & Visual Cleanup", () => {
   let server;
   let baseUrl;
 
@@ -20,16 +20,34 @@ describe("Stage D, E, F: Server Routing & UX Navigation", () => {
     await new Promise((resolve) => server.close(resolve));
   });
 
-  test("GET / returns 200 and index.html with Stage E New prompt button & Stage F nav", async () => {
+  test("GET / returns 200 and index.html with Stage E, F, G features", async () => {
     const res = await fetch(`${baseUrl}/`);
     assert.equal(res.status, 200);
     const text = await res.text();
     assert.ok(text.includes("PromptBuddy"));
     assert.ok(text.includes('src="/script.js"'));
 
-    // Stage E: New prompt button
+    // Stage G: Tagline in navbar
+    assert.ok(text.includes('class="brand-tagline"'));
+    assert.ok(text.includes("Generate clear, useful prompts for study, research, or coding."));
+
+    // Stage G: Visually hidden h1
+    assert.ok(text.includes('<h1 class="visually-hidden">Generate a prompt</h1>'));
+
+    // Stage G: Absence of welcome header, ideas banner, specific banner
+    assert.ok(!text.includes('class="welcome-header"'));
+    assert.ok(!text.includes('class="ideas-banner"'));
+    assert.ok(!text.includes('id="specificBanner"'));
+    assert.ok(!text.includes('id="viewTemplatesBtn"'));
+
+    // Stage E & G: Plain New prompt button
     assert.ok(text.includes('id="newPromptBtn"'));
+    assert.ok(text.includes('class="btn-new-prompt-plain"'));
     assert.ok(text.includes("New prompt"));
+
+    // Stage G: Sidebar headers have header-left
+    assert.ok(text.includes('class="sidebar-card tips-card"'));
+    assert.ok(text.includes('class="sidebar-card contact-card"'));
 
     // Stage F: Desktop nav on /
     assert.ok(text.includes('href="/" class="brand-logo"'));
@@ -46,13 +64,17 @@ describe("Stage D, E, F: Server Routing & UX Navigation", () => {
     assert.ok(!text.includes('id="mobileSavedTab"'));
   });
 
-  test("GET /history.html returns 200 and history.html with Stage F nav & History naming", async () => {
+  test("GET /history.html returns 200 and history.html with Stage F nav, History naming & Stage G header", async () => {
     const res = await fetch(`${baseUrl}/history.html`);
     assert.equal(res.status, 200);
     const text = await res.text();
     assert.ok(text.includes("<title>Prompt History - PromptBuddy</title>"));
     assert.ok(text.includes('class="history-title">Prompt History</h1>'));
     assert.ok(text.includes('src="/js/history.js"'));
+
+    // Stage G: Tagline in navbar
+    assert.ok(text.includes('class="brand-tagline"'));
+    assert.ok(text.includes("Generate clear, useful prompts for study, research, or coding."));
 
     // Stage F: Desktop nav on /history.html
     assert.ok(text.includes('href="/" class="brand-logo"'));
