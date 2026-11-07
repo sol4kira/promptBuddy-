@@ -1317,6 +1317,10 @@ a.nav-item[aria-current="page"],
     height: calc(64px + env(safe-area-inset-bottom, 0px));
   }
 
+  .toast-popup {
+    bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
+  }
+
   .page-wrapper {
     width: 100%;
     max-width: 100%;
