@@ -131,16 +131,27 @@ describe("Stage C: HistoryStore", () => {
     // Token matching nothing returns empty array
     assert.equal(store.search("nonexistent").length, 0);
     assert.equal(store.search("python nonexistent").length, 0);
+
+    // M5: Indexing and searching context tokens as well as goal tokens
+    const counterEntry = store.add({
+      goal: "Create a stateful component",
+      context: "A simple counter with increment button",
+      style: "example",
+    });
+    const counterMatches = store.search("counter");
+    assert.equal(counterMatches.length, 1);
+    assert.equal(counterMatches[0].id, counterEntry.id);
   });
 
   test("remove(id) cleans up from entries, idMap, LRU, Trie, and storage", () => {
     const storage = createMockStorage();
     const store = new HistoryStore(storage);
 
-    const entry1 = store.add({ goal: "First unique keyword xylophone", style: "concise" });
+    const entry1 = store.add({ goal: "First unique keyword xylophone", context: "Harmonica context word", style: "concise" });
     const entry2 = store.add({ goal: "Second unique keyword zither", style: "detail" });
 
     assert.equal(store.search("xylophone").length, 1);
+    assert.equal(store.search("harmonica").length, 1);
 
     // Remove entry 1
     const removed = store.remove(entry1.id);
@@ -148,8 +159,9 @@ describe("Stage C: HistoryStore", () => {
     assert.equal(store.all().length, 1);
     assert.equal(store.recent(5).length, 1);
 
-    // Trie must no longer return entry1 for "xylophone"
+    // Trie must no longer return entry1 for "xylophone" or "harmonica"
     assert.equal(store.search("xylophone").length, 0);
+    assert.equal(store.search("harmonica").length, 0);
     // Entry 2 is still found
     assert.equal(store.search("zither").length, 1);
 

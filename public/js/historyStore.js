@@ -10,6 +10,10 @@ import {
 
 export const LRU_CAPACITY = 10;
 
+function getEntryText(entry) {
+  return `${entry.goal || ""} ${entry.context || ""}`;
+}
+
 // Central history store managing persistence, an LRU cache (recent 10), and a prefix trie (all entries) for search.
 export class HistoryStore {
   constructor(storage = typeof localStorage !== "undefined" ? localStorage : null) {
@@ -51,7 +55,7 @@ export class HistoryStore {
     // 1. Rebuild the idMap and index all entries in the Trie
     for (const entry of this.entries) {
       this.idMap.set(entry.id, entry);
-      const tokens = tokenize(entry.goal);
+      const tokens = tokenize(getEntryText(entry));
       for (const token of tokens) {
         this.trie.insert(token, entry.id);
       }
@@ -100,7 +104,7 @@ export class HistoryStore {
       this.lru.put(entry.key, entry);
 
       // Index tokens in Trie
-      const tokens = tokenize(entry.goal);
+      const tokens = tokenize(getEntryText(entry));
       for (const token of tokens) {
         this.trie.insert(token, entry.id);
       }
@@ -112,7 +116,7 @@ export class HistoryStore {
         this.idMap.delete(evicted.id);
         this.lru.delete(evicted.key);
 
-        const evictedTokens = tokenize(evicted.goal);
+        const evictedTokens = tokenize(getEntryText(evicted));
         for (const token of evictedTokens) {
           this.trie.remove(token, evicted.id);
         }
@@ -142,7 +146,7 @@ export class HistoryStore {
     this._rebuildLRU();
 
     // Remove words from Trie
-    const tokens = tokenize(entry.goal);
+    const tokens = tokenize(getEntryText(entry));
     for (const token of tokens) {
       this.trie.remove(token, id);
     }
