@@ -77,9 +77,23 @@ function resetGeneratedState() {
   if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
 }
 
+// Clear goal field validation error state
+function clearGoalError() {
+  const goalInput = document.getElementById("goal");
+  const goalError = document.getElementById("goalError");
+  if (goalInput) {
+    goalInput.removeAttribute("aria-invalid");
+    goalInput.removeAttribute("aria-describedby");
+  }
+  if (goalError) {
+    goalError.style.display = "none";
+  }
+}
+
 // Quick Preset Handlers
 function applyPreset(name) {
   resetGeneratedState();
+  clearGoalError();
   const goalInput = document.getElementById("goal");
   const contextInput = document.getElementById("context");
   const styleSelect = document.getElementById("style");
@@ -188,6 +202,7 @@ function renderTemplatesList(templates) {
 
 function selectTemplate(templateId) {
   resetGeneratedState();
+  clearGoalError();
   const t = loadedTemplates.find((item) => item.id === templateId);
   if (!t) return;
 
@@ -389,6 +404,7 @@ function renderRecentPrompts() {
 // Load a selected prompt into the form
 function loadSamplePrompt(goalText, style = "detail", audience = "beginner", length = "short", context = "") {
   resetGeneratedState();
+  clearGoalError();
   const goalInput = document.getElementById("goal");
   const contextInput = document.getElementById("context");
   const styleSelect = document.getElementById("style");
@@ -509,6 +525,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Form input listeners to reset generated state and counter
   if (goalInput) {
     goalInput.addEventListener("input", () => {
+      clearGoalError();
       updateCharCounter();
       resetGeneratedState();
     });
@@ -552,6 +569,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 4. Reset output area to placeholder state
       resetGeneratedState();
+      clearGoalError();
 
       // 5. Keep the user's dropdown choices (style, audience, length) intact
 
@@ -618,6 +636,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // Generate Prompt click handler with store.add()
   if (generateBtn) {
     generateBtn.addEventListener("click", () => {
+      const rawGoal = goalInput ? goalInput.value : "";
+      if (!rawGoal.trim()) {
+        if (goalInput) {
+          goalInput.setAttribute("aria-invalid", "true");
+          goalInput.setAttribute("aria-describedby", "goalError");
+          goalInput.focus();
+        }
+        const goalError = document.getElementById("goalError");
+        if (goalError) {
+          goalError.style.display = "block";
+        }
+        return;
+      }
+      clearGoalError();
+
       const p = buildPrompt();
       if (outputElem) {
         outputElem.textContent = p;
@@ -625,7 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Read current form values
-      const goalVal = cutWhiteSpace(goalInput ? goalInput.value : "") || "Custom prompt request";
+      const goalVal = cutWhiteSpace(goalInput.value);
       const styleVal = document.getElementById("style")?.value || "concise";
       const audienceVal = document.getElementById("audience")?.value || "beginner";
       const lengthVal = document.getElementById("length")?.value || "short";

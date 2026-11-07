@@ -73,9 +73,12 @@
                     rows="6"
                     maxlength="1000"
                     placeholder="e.g., Summarize notes, Explain a topic, or write code..."
+                    required
+                    aria-required="true"
                   ></textarea>
                   <span class="char-count" id="charCounter">0/1000</span>
                 </div>
+                <p id="goalError" class="field-error" role="alert" style="display: none; color: #f87171; font-size: 13px; margin-top: 6px;">Please enter what you want to ask the AI.</p>
               </div>
 
               <!-- Context Details Expandable -->
