@@ -438,11 +438,48 @@ function focusGenerator() {
 // Accessible Modal Helper Functions
 let lastFocusedElement = null;
 
+function setBackgroundInert(inert) {
+  const elements = document.querySelectorAll("header, main, footer, .mobile-bottom-bar");
+  elements.forEach((el) => {
+    if (inert) {
+      el.setAttribute("inert", "");
+    } else {
+      el.removeAttribute("inert");
+    }
+  });
+}
+
+function trapModalFocus(modal, e) {
+  if (e.key !== "Tab") return;
+
+  const focusable = modal.querySelectorAll(
+    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusable.length) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (e.shiftKey) {
+    if (document.activeElement === first || !modal.contains(document.activeElement)) {
+      e.preventDefault();
+      last.focus();
+    }
+  } else {
+    if (document.activeElement === last || !modal.contains(document.activeElement)) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+}
+
 function openModal(modal, triggerElement) {
   if (!modal) return;
   lastFocusedElement = triggerElement || document.activeElement;
   modal.setAttribute("aria-hidden", "false");
   modal.classList.add("open");
+  document.body.style.overflow = "hidden";
+  setBackgroundInert(true);
 
   // Focus close button inside the modal
   const closeBtn = modal.querySelector(".modal-close-btn");
@@ -455,6 +492,8 @@ function closeModal(modal) {
   if (!modal) return;
   modal.setAttribute("aria-hidden", "true");
   modal.classList.remove("open");
+  document.body.style.overflow = "";
+  setBackgroundInert(false);
 
   // Restore focus to opening trigger
   if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
@@ -776,13 +815,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Close modals on Escape key press
+  // Close modals on Escape key press and trap Tab focus inside open modal
   window.addEventListener("keydown", (e) => {
+    const openModalElem = document.querySelector(".modal-backdrop.open");
+    if (!openModalElem) return;
+
     if (e.key === "Escape") {
-      const openModalElem = document.querySelector(".modal-backdrop.open");
-      if (openModalElem) {
-        closeModal(openModalElem);
-      }
+      closeModal(openModalElem);
+    } else if (e.key === "Tab") {
+      trapModalFocus(openModalElem, e);
     }
   });
 

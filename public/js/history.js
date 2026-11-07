@@ -351,11 +351,48 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function setBackgroundInert(inert) {
+    const elements = document.querySelectorAll("header, main, footer, .mobile-bottom-bar");
+    elements.forEach((el) => {
+      if (inert) {
+        el.setAttribute("inert", "");
+      } else {
+        el.removeAttribute("inert");
+      }
+    });
+  }
+
+  function trapModalFocus(modal, e) {
+    if (e.key !== "Tab") return;
+
+    const focusable = modal.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey) {
+      if (document.activeElement === first || !modal.contains(document.activeElement)) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last || !modal.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
   function openTemplatesModal(trigger) {
     if (!templatesModal) return;
     lastFocusedElement = trigger || document.activeElement;
     templatesModal.setAttribute("aria-hidden", "false");
     templatesModal.classList.add("open");
+    document.body.style.overflow = "hidden";
+    setBackgroundInert(true);
 
     if (loadedTemplates.length === 0) {
       fetchTemplates();
@@ -370,6 +407,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!templatesModal) return;
     templatesModal.setAttribute("aria-hidden", "true");
     templatesModal.classList.remove("open");
+    document.body.style.overflow = "";
+    setBackgroundInert(false);
     if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
       lastFocusedElement.focus();
       lastFocusedElement = null;
@@ -434,8 +473,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && templatesModal && templatesModal.classList.contains("open")) {
-      closeTemplatesModalFunc();
+    if (templatesModal && templatesModal.classList.contains("open")) {
+      if (e.key === "Escape") {
+        closeTemplatesModalFunc();
+      } else if (e.key === "Tab") {
+        trapModalFocus(templatesModal, e);
+      }
     }
   });
 

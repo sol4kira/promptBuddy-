@@ -1151,6 +1151,12 @@ a.nav-item[aria-current="page"],
   line-height: 1;
   color: var(--text-muted);
   padding: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .modal-close-btn:hover {
