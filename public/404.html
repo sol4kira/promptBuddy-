@@ -63,6 +63,11 @@
       </div>
     </div>
   </footer>
-  <script src="script.js"></script>
+  <script>
+    const footerYear = document.getElementById("footerYear");
+    if (footerYear) {
+      footerYear.textContent = new Date().getFullYear();
+    }
+  </script>
 </body>
 </html>
