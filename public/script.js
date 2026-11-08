@@ -854,8 +854,6 @@ document.addEventListener("DOMContentLoaded", () => {
     footerYear.textContent = new Date().getFullYear();
   }
 
-  // Load templates from API
-  fetchTemplates();
 
   // Initial render of recent prompts from LRU cache
   renderRecentPrompts();
