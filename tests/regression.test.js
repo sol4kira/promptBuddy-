@@ -1,5 +1,7 @@
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import app from "../src/app.js";
 import { chromium } from "playwright";
 
@@ -245,6 +247,87 @@ describe("Stage P0 Regression Tests", () => {
       } finally {
         await page.close();
       }
+    }
+  });
+
+  // ITEM 2 (P2 / M9): Contrast, heading, and ARIA budget test using Playwright + axe
+  test("M9: Accessibility audit satisfies contrast, heading, and ARIA budgets (0 violations)", async () => {
+    const page = await browser.newPage();
+    try {
+      await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
+
+      const axePath = path.resolve("node_modules/axe-core/axe.min.js");
+      if (fs.existsSync(axePath)) {
+        const axeSource = fs.readFileSync(axePath, "utf8");
+        await page.evaluate(axeSource);
+
+        const results = await page.evaluate(async () => {
+          return await axe.run({
+            runOnly: {
+              type: "tag",
+              values: ["wcag2a", "wcag2aa"],
+            },
+          });
+        });
+
+        const budgets = { contrast: 0, heading: 0, aria: 0 };
+
+        const contrastViolations = results.violations.filter((v) => v.id.includes("color-contrast"));
+        const headingViolations = results.violations.filter((v) => v.id.includes("heading") || v.id.includes("structure"));
+        const ariaViolations = results.violations.filter(
+          (v) =>
+            v.id.includes("aria") ||
+            v.id.includes("role") ||
+            v.id.includes("button-name") ||
+            v.id.includes("link-name") ||
+            v.id.includes("listitem")
+        );
+
+        assert.equal(contrastViolations.length, budgets.contrast, `Contrast budget exceeded: found ${contrastViolations.length} violations`);
+        assert.equal(headingViolations.length, budgets.heading, `Heading budget exceeded: found ${headingViolations.length} violations`);
+        assert.equal(ariaViolations.length, budgets.aria, `ARIA budget exceeded: found ${ariaViolations.length} violations`);
+      }
+
+      // Playwright-native DOM budget checks for heading hierarchy and ARIA roles
+      const domAudit = await page.evaluate(() => {
+        const errors = { contrast: [], heading: [], aria: [] };
+
+        // 1. Heading hierarchy check
+        const headings = Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+        let maxLevelSeen = 0;
+        headings.forEach((h) => {
+          const level = parseInt(h.tagName.substring(1), 10);
+          if (maxLevelSeen > 0 && level > maxLevelSeen + 1) {
+            errors.heading.push(`Skipped heading level: from h${maxLevelSeen} to h${level}`);
+          }
+          maxLevelSeen = level;
+          if (!h.textContent.trim()) {
+            errors.heading.push(`Empty heading: <${h.tagName}> has no text`);
+          }
+        });
+
+        // 2. ARIA interactive & modal checks
+        const buttons = Array.from(document.querySelectorAll("button, [role='button']"));
+        buttons.forEach((b) => {
+          const hasName = b.innerText.trim() || b.getAttribute("aria-label") || b.getAttribute("aria-labelledby") || b.getAttribute("title");
+          if (!hasName) {
+            errors.aria.push(`Button missing accessible name: ${b.outerHTML.substring(0, 50)}`);
+          }
+        });
+
+        const dialog = document.querySelector(".modal-backdrop");
+        if (dialog) {
+          if (dialog.getAttribute("role") !== "dialog") errors.aria.push("Modal missing role='dialog'");
+          if (dialog.getAttribute("aria-modal") !== "true") errors.aria.push("Modal missing aria-modal='true'");
+        }
+
+        return errors;
+      });
+
+      assert.equal(domAudit.heading.length, 0, `Heading DOM budget exceeded: ${domAudit.heading.join("; ")}`);
+      assert.equal(domAudit.aria.length, 0, `ARIA DOM budget exceeded: ${domAudit.aria.join("; ")}`);
+    } finally {
+      await page.close();
     }
   });
 });
