@@ -100,6 +100,26 @@ export function loadHistory(storage = typeof localStorage !== "undefined" ? loca
   return [];
 }
 
+let hasShownStorageErrorToast = false;
+
+export function resetStorageErrorToastState() {
+  hasShownStorageErrorToast = false;
+}
+
+function showStorageErrorToast() {
+  if (hasShownStorageErrorToast) return;
+  if (typeof document === "undefined") return;
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  hasShownStorageErrorToast = true;
+  toast.textContent = "Could not save history to local storage";
+  toast.classList.add("show");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 4000);
+}
+
 // Saves history entries to localStorage under promptbuddy_history_v2, dropping items exceeding MAX_HISTORY_ENTRIES (200). Big-O: O(N).
 export function saveHistory(entries, storage = typeof localStorage !== "undefined" ? localStorage : null) {
   if (!Array.isArray(entries)) return false;
@@ -114,6 +134,7 @@ export function saveHistory(entries, storage = typeof localStorage !== "undefine
     return true;
   } catch (err) {
     console.warn("Could not save history to localStorage:", err);
+    showStorageErrorToast();
     return false;
   }
 }

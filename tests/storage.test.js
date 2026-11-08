@@ -10,6 +10,7 @@ import {
   migrateOldEntries,
   loadHistory,
   saveHistory,
+  resetStorageErrorToastState,
 } from "../public/js/storage.js";
 
 // Mock localStorage implementation for Node test environment
@@ -178,5 +179,46 @@ describe("Stage A: Storage & Entry Shape", () => {
 
     const saved = saveHistory([{ goal: "test" }], brokenStorage);
     assert.equal(saved, false);
+  });
+
+  test("shows a one-time toast when saving to storage fails", () => {
+    resetStorageErrorToastState();
+    let toastShownCount = 0;
+    const mockToast = {
+      classList: {
+        add(cls) {
+          if (cls === "show") toastShownCount++;
+        },
+        remove() {},
+      },
+      textContent: "",
+    };
+
+    globalThis.document = {
+      getElementById(id) {
+        return id === "toast" ? mockToast : null;
+      },
+    };
+
+    try {
+      const failingStorage = {
+        setItem() {
+          throw new Error("QuotaExceeded");
+        },
+      };
+
+      const firstResult = saveHistory([{ goal: "1" }], failingStorage);
+      assert.equal(firstResult, false);
+      assert.equal(toastShownCount, 1);
+      assert.equal(mockToast.textContent, "Could not save history to local storage");
+
+      // Second failure should NOT trigger another toast (one-time)
+      const secondResult = saveHistory([{ goal: "2" }], failingStorage);
+      assert.equal(secondResult, false);
+      assert.equal(toastShownCount, 1);
+    } finally {
+      delete globalThis.document;
+      resetStorageErrorToastState();
+    }
   });
 });
