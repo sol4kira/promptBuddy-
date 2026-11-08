@@ -557,6 +557,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const copyBtnText = document.getElementById("copyBtnText");
   const outputElem = document.getElementById("output");
   const outputBadge = document.getElementById("outputBadge");
+  const generatorForm = document.getElementById("generatorForm");
+
+  // Prevent default form submission
+  if (generatorForm) {
+    generatorForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+    });
+  }
 
   // In-memory snapshot for "New prompt" Undo functionality
   let undoSnapshot = null;
