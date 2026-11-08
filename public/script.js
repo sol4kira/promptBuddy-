@@ -73,7 +73,7 @@ function resetGeneratedState() {
   const copyBtnText = document.getElementById("copyBtnText");
 
   if (outputElem) outputElem.textContent = "Your Prompt Will be here.";
-  if (outputBadge) outputBadge.textContent = "Ready to use";
+  if (outputBadge) outputBadge.textContent = "Draft";
   if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
 }
 
@@ -643,6 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (outputElem) outputElem.textContent = undoSnapshot.output;
           if (copyBtnText) copyBtnText.textContent = "Copy Prompt";
           hasGeneratedPrompt = undoSnapshot.hasGeneratedPrompt;
+          if (outputBadge) outputBadge.textContent = hasGeneratedPrompt ? "Generated" : "Draft";
           updateCharCounter();
           undoSnapshot = null;
           showToast("Restored prompt");
@@ -695,6 +696,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (outputElem) {
         outputElem.textContent = p;
         hasGeneratedPrompt = true;
+      }
+      if (outputBadge) {
+        outputBadge.textContent = "Generated";
       }
 
       // Read current form values
