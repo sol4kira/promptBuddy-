@@ -90,6 +90,7 @@
                   <span>Optional context, notes, or constraints</span>
                 </summary>
                 <div class="context-body">
+                  <label for="context" class="visually-hidden">Optional context, notes, or constraints</label>
                   <textarea id="context" class="context-textarea" rows="3" placeholder="Add specific details, background notes, or examples for the AI..."></textarea>
                 </div>
               </details>
@@ -221,7 +222,7 @@
           <div class="output-container" id="outputSection">
             <div class="output-header">
               <div class="output-title-wrap">
-                <label class="output-label">Generated Prompt</label>
+                <span class="output-label">Generated Prompt</span>
                 <span class="output-badge" id="outputBadge">Draft</span>
               </div>
               <div class="output-controls">
@@ -283,12 +284,12 @@
               </svg>
               <h3 class="sidebar-card-title" id="recentPromptsTitle">Your Recent Prompts</h3>
             </div>
-            <button type="button" class="view-all-link" id="viewAllRecentBtn">
+            <a href="/history.html" class="view-all-link" id="viewAllRecentBtn">
               <span>View All</span>
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
-            </button>
+            </a>
           </div>
           <div class="recent-list" id="recentPromptsList" role="list">
             <!-- Empty at first as requested -->

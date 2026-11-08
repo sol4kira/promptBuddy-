@@ -753,6 +753,7 @@ a.nav-item[aria-current="page"],
   font-size: 13px;
   font-weight: 600;
   color: var(--color-accent);
+  text-decoration: none;
   transition: color var(--transition-fast);
 }
 

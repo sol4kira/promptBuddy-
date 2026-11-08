@@ -813,13 +813,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Sidebar "View All" button -> opens history page
-  const viewAllRecentBtn = document.getElementById("viewAllRecentBtn");
-  if (viewAllRecentBtn) {
-    viewAllRecentBtn.addEventListener("click", () => {
-      window.location.href = "/history.html";
-    });
-  }
 
   // Close modals on backdrop click
   window.addEventListener("click", (e) => {

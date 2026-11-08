@@ -254,7 +254,7 @@ describe("Stage P0 Regression Tests", () => {
   test("M9: Accessibility audit satisfies contrast, heading, and ARIA budgets (0 violations)", async () => {
     const page = await browser.newPage();
     try {
-      await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
+      await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
 
       const axePath = path.resolve("node_modules/axe-core/axe.min.js");
       if (fs.existsSync(axePath)) {
